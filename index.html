@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>שמות החטופים לתפילה</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js";
+      import {
+        getDatabase,
+        ref,
+        set,
+        onValue,
+      } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBcuwDI1n17evwg7YxeI6twTNVWZL9jb1Y",
+        authDomain: "prayer-e0df2.firebaseapp.com",
+        databaseURL:
+          "https://prayer-e0df2-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "prayer-e0df2",
+        storageBucket: "prayer-e0df2.appspot.com",
+        messagingSenderId: "1093380327772",
+        appId: "1:1093380327772:web:0ce40c6aee3d54ac4c9999",
+        measurementId: "G-4PE5V4C1H5",
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
+      const database = getDatabase(app);
+
+      // רשימת שמות לתפילה
+      const names = [
+        "אבינתן בן דיצה תרצה (אור)",
+        "אביתר בן גליה (דוד)",
+        "אברהם אברה בן אגרנש (מנגיסטו)",
+        "אגם בת מירב (ברגר)",
+        "אוהד בן קרן אסתר (בן עמי)",
+        "אוהד בן שרה (יהלומי)",
+        "אור בן סימה גאולה (לוי)",
+        "אורי בן עינב אפרת (דנינו)",
+        "איתן בן רות אדית (הורן)",
+        "איתן אברהם בן אפרת (מור)",
+        "אלון בן עידית(אהל)",
+        "אליה בן סיגלית (כהן)",
+        "אליהו בן חנה (שרעבי)",
+        "אליזבת בת אירנה (צורקוב) מוחזקת בעירק",
+        "אלכסנדר בן אוקסנה (לובנוב)",
+        "אלכסנדר סשה בן ילנה (טרופנוב)",
+        "אלמוג בן נירה (סרוסי)",
+        "אלקנה בן רוחמה (בוחבוט)",
+        "אמילי תהילה בת אמנדה פרנסיס (דמארי)",
+        "אריאל בן סילביה מוניקה (קוניו)",
+        "אריאל בן שירי (ביבס)",
+        "ארבל בת יעל (יהוד)",
+        'אוריאל בן נעמי (ברוך) הי"ד',
+        'אביב בן תלמה (אצילי) הי"ד',
+        'אורון בן זהבה (שאול) הי"ד',
+        "אילן שלמה בן מרים (וייס) הי״ד",
+        'איתי בן אורית (סבירסקי) הי"ד',
+        'איתי בן חגית (חן) הי"ד',
+        'איתן בן סול (לוי) הי"ד',
+        "אליהו בן דבורה (מרגלית) הי״ד",
+        "אל׳מ אסף בן קלרה (חממי) הי׳ד",
+        "אריה בן צבי (זלמנוביץ) הי״ד",
+        "בר אברהם בן ג'וליה (קופרשטיין)",
+        "גיא בן מירב (גלבוע דלאל)",
+        "גדי משה בן שרה (מוזס)",
+        "גלי בן תמר טליה (ברמן) (מוחזק יחד עם אחיו זיו)",
+        'גד בן שרה (חגי) הי"ד',
+        "גיא בן דוריס (אילוז) הי׳ד",
+        'גיא בן רינה (חבר) הי"ד',
+        "דוד דיגו בן סילביה מוניקה (קוניו)",
+        "דורון בת שרה (סימונה) שטיינברכר",
+        "דניאלה בת אורלי (גלבוע)",
+        'דניאל שמעון בן שרון (פרץ) הי"ד',
+        "דרור בן דורית (אור) הי׳ד",
+        "הירש בן פערל חנה (גולדברג פולין)",
+        'הדר בן חדווה לאה (גולדין) הי"ד',
+        "זיו בן תמר טליה (ברמן) (מוחזק יחד עם אחיו גלי)",
+        "טל בן ניצה (שוהם)",
+        'טל בן אסתר (חיימי) הי"ד',
+        "יאיר בן רות אדית (הורן)",
+        "יוסף חיים בן מרים (אוחנה)",
+        "יצחק איציק בן חנה אנטה (אלגרט)",
+        "יקותיאל קית׳ שמואל בן טובה (סיגל)",
+        "יקותיאל יהודה נחמן בן שרה (כץ)",
+        "ירדן בן פנינה (ביבס)",
+        'יהודית לין בת מרלין (ויינשטיין) הי"ד',
+        "יהונתן מרדכי בן איילת (סמרנו) הי״ד",
+        'יוסף בן חנה (שרעבי) הי"ד',
+        "יאיר בן פלור (יעקב) הי׳ד",
+        "כפיר בן שירי (ביבס)",
+        "כרמל בת כנרת (גת)",
+        "לירי בת שירה (אלבג)",
+        'ליאור בן מיכל(רודאיף) הי"ד',
+        "מקסים בן טלה נטשה (הרקין)",
+        "מתן שחר בן ענת (אנגרסט)",
+        "מתן בן ירדנה עינב (צנגאוקר)",
+        "מני בן סוניה גודארד הי׳ד",
+        "נמרוד בן ויקי (כהן)",
+        "נעמה בת איילת (לוי)",
+        'סהר בן תמר (ברוך) הי"ד',
+        "עומרי בן ורוניקה אסתר (מירן)",
+        "עדן בת שירית (ירושלמי)",
+        "עודד בן בלהה (ליפשיץ)",
+        "עומר מקסים בן אורנה אסתר (נאוטרה)",
+        "עומר בן שלי (שם טוב)",
+        "עומר בן ניבה (ונקרט)",
+        "עופר בן כוכבה (קלדרון)",
+        "עידן בן דלית (שתיוי)",
+        "עידן בן יעל (אלכסנדר)",
+        'עוז בן מירב (דניאל) הי"ד',
+        "עמירם בן שרה (קופר) הי״ד",
+        "ענבר בת יפעת (היימן) הי״ד",
+        "עפרה בת פנינה (קידר) הי״ד",
+        "צחי בן דבורה (עידן)",
+        'צבי בן פנינה (פלדמן) הי"ד',
+        "קרינה בת אירה (ארייב)",
+        "רומי בת מירב (גונן)",
+        "רום בן תמר (ברסלבסקי)",
+        'רון בן בתיה (ארד) הי"ד',
+        "רונן בן רוזמרי (אנגל) הי״ד",
+        'רן בן טלי (גואילי) הי"ד',
+        "שגב בן גלית (כלפון)",
+        "שגיא בן נעמית (דקל חן)",
+        "שירי בת מרגיט (זילברמן-ביבס)",
+        "שלמה בן מרסל (מנצור)",
+        "שמואל בן גלדיס (סיגל)",
+        "שי בן שלומית שרית (לוינסון) הי׳ד",
+        'שקד בן סיגלית (דהן) הי"ד',
+        "תמיר בן חרות (נמרודי)",
+      ];
+      let namesCount = {};
+      let totalCount = 0;
+
+      // טעינת נתונים מ-Firebase
+      function loadData() {
+        const namesCountRef = ref(database, "namesCount");
+        onValue(namesCountRef, (snapshot) => {
+          namesCount = snapshot.val() || {};
+          names.forEach((name) => {
+            if (!namesCount[name]) namesCount[name] = 0;
+          });
+          updateNamesList();
+        });
+
+        const totalCountRef = ref(database, "totalCount");
+        onValue(totalCountRef, (snapshot) => {
+          totalCount = snapshot.val() || 0;
+          updateCounter();
+        });
+      }
+
+      // שמירת נתונים ל-Firebase
+      function saveData() {
+        set(ref(database, "namesCount"), namesCount);
+        set(ref(database, "totalCount"), totalCount);
+      }
+
+      function updateNamesList() {
+        const namesList = document.getElementById("namesList");
+        namesList.innerHTML = "";
+        Object.entries(namesCount)
+          .sort((a, b) => b[1] - a[1])
+          .forEach(([name, count], index) => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+                    <div>
+                        <span class="name-number">${index + 1}.</span>
+                        <span class="name-text">${name}</span>
+                    </div>
+                    <span class="name-count">${count}</span>
+                `;
+            namesList.appendChild(li);
+          });
+      }
+
+      function updateCounter() {
+        document.getElementById(
+          "counter"
+        ).textContent = `סה"כ אנשים שקיבלו שם חטוף לתפילה: ${totalCount}`;
+      }
+
+      // הוספת אנימציה לתוצאה
+      document.getElementById("generateBtn").addEventListener("click", () => {
+        const result = document.getElementById("result");
+        result.classList.remove("fade-in");
+        void result.offsetWidth; // Trigger reflow
+        result.classList.add("fade-in");
+      });
+
+      document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("generateBtn").addEventListener("click", () => {
+          const randomName = names[Math.floor(Math.random() * names.length)];
+          document.getElementById(
+            "result"
+          ).textContent = `שם החטוף/ה שנבחר עבורך: ${randomName}`;
+          namesCount[randomName] = (namesCount[randomName] || 0) + 1;
+          totalCount++;
+          updateNamesList();
+          updateCounter();
+          saveData();
+        });
+
+        // טעינת הנתונים בעת טעינת הדף
+        loadData();
+      });
+    </script>
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700&display=swap');
+
+    :root {
+        --primary-color: #4338ca;
+        --secondary-color: #818cf8;
+        --background-color: #f3f4f6;
+        --text-color: #1f2937;
+        --white: #ffffff;
+        --gold: #ffd700;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Heebo', sans-serif;
+        background: linear-gradient(135deg, var(--background-color), var(--secondary-color));
+        color: var(--text-color);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 2rem 1rem;
+    }
+
+    .container {
+        width: 100%;
+        max-width: 800px;
+        text-align: center;
+    }
+
+    h1 {
+        font-size: 2.5rem;
+        color: var(--primary-color);
+        margin-bottom: 2rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    #counter {
+        background-color: var(--white);
+        color: var(--primary-color);
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        font-weight: bold;
+        font-size: 1.25rem;
+        display: inline-block;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .card {
+        background-color: var(--white);
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    #generateBtn {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: var(--white);
+        border: none;
+        padding: 1rem 2rem;
+        font-size: 1.25rem;
+        font-weight: bold;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: transform 0.3s, box-shadow 0.3s;
+        width: 100%;
+    }
+
+    #generateBtn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    #result {
+        margin-top: 1rem;
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+
+    #namesList {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    #namesList li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #e5e7eb;
+        transition: background-color 0.3s;
+    }
+
+    #namesList li:last-child {
+        border-bottom: none;
+    }
+
+    #namesList li:hover {
+        background-color: #f9fafb;
+    }
+
+    .name-number {
+        color: var(--secondary-color);
+        font-weight: bold;
+        margin-right: 0.5rem;
+    }
+
+    .name-text {
+        font-size: 1.25rem;
+    }
+
+    .name-count {
+        background-color: var(--primary-color);
+        color: var(--white);
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-weight: bold;
+    }
+
+    .fancy-title {
+        font-size: 2.2rem;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        position: relative;
+        padding: 0.5rem 0;
+    }
+
+    .fancy-title::before,
+    .fancy-title::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        height: 3px;
+        width: 30%;
+        background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+
+    .fancy-title::before {
+        left: 0;
+    }
+
+    .fancy-title::after {
+        right: 0;
+    }
+
+    .title-text {
+        position: relative;
+        display: inline-block;
+        padding: 0 1rem;
+        color: var(--primary-color);
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .title-text::before {
+        content: attr(data-text);
+        position: absolute;
+        left: 0;
+        top: 0;
+        z-index: -1;
+        text-shadow: 2px 2px 0px var(--gold), 4px 4px 0px rgba(0, 0, 0, 0.1);
+        -webkit-text-fill-color: transparent;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-in {
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    @media (max-width: 640px) {
+        h1 {
+            font-size: 2rem;
+        }
+
+        #counter, #result {
+            font-size: 1rem;
+        }
+
+        .card {
+            padding: 1.5rem;
+        }
+
+        #generateBtn {
+            font-size: 1rem;
+            padding: 0.75rem 1.5rem;
+        }
+
+        .fancy-title {
+            font-size: 1.8rem;
+        }
+    }
+</style>
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="fancy-title">
+    <span class="title-text" data-text="רשימת שמות החטופים לתפילה">רשימת שמות לתפילה</span>
+</h1>
+
+      <div id="counter"></div>
+
+      <div class="card">
+        <button id="generateBtn">קבל שם חטוף לתפילה</button>
+        <p id="result"></p>
+      </div>
+
+      <div class="card">
+        <h2 class="fancy-title">
+    <span class="title-text" data-text="רשימת שמות החטופים לתפילה">רשימת שמות לתפילה</span>
+</h2>
+        <ul id="namesList"></ul>
+      </div>
+    </div>
+  </body>
+</html>
