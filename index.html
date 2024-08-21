@@ -193,29 +193,34 @@
       }
 
       // הוספת אנימציה לתוצאה
-      document.getElementById("generateBtn").addEventListener("click", () => {
-        const result = document.getElementById("result");
-        result.classList.remove("fade-in");
-        void result.offsetWidth; // Trigger reflow
-        result.classList.add("fade-in");
-      });
+document.getElementById('generateBtn').addEventListener('click', () => {
+        const randomName = names[Math.floor(Math.random() * names.length)];
+        namesCount[randomName] = (namesCount[randomName] || 0) + 1;
+        totalCount++;
+        updateNamesList();
+        updateCounter();
+        saveData();
+        
+        // הצג את המודל עם השם שנבחר
+        document.getElementById('modalResult').textContent = randomName;
+        document.getElementById('nameModal').style.display = 'block';
+    });
 
-      document.addEventListener("DOMContentLoaded", () => {
-        document.getElementById("generateBtn").addEventListener("click", () => {
-          const randomName = names[Math.floor(Math.random() * names.length)];
-          document.getElementById(
-            "result"
-          ).textContent = `שם החטוף/ה שנבחר עבורך: ${randomName}`;
-          namesCount[randomName] = (namesCount[randomName] || 0) + 1;
-          totalCount++;
-          updateNamesList();
-          updateCounter();
-          saveData();
-        });
+    // סגירת המודל
+    document.getElementById('closeModal').addEventListener('click', () => {
+        document.getElementById('nameModal').style.display = 'none';
+    });
 
-        // טעינת הנתונים בעת טעינת הדף
-        loadData();
-      });
+    // סגירת המודל כשלוחצים מחוץ לתוכן שלו
+    window.addEventListener('click', (event) => {
+        const modal = document.getElementById('nameModal');
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+
+    // טעינת הנתונים בעת טעינת הדף
+    loadData();
     </script>
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700&display=swap');
@@ -388,6 +393,64 @@
             padding: 0.75rem 1.5rem;
         }
     }
+    .modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+    animation: fadeIn 0.3s;
+}
+
+.modal-content {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: var(--white);
+    margin: 15% auto;
+    padding: 20px;
+    border-radius: 10px;
+    width: 80%;
+    max-width: 500px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    text-align: center;
+    animation: slideIn 0.3s;
+}
+
+.modal-result {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 20px 0;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.modal-close {
+    background-color: var(--white);
+    color: var(--primary-color);
+    border: none;
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+.modal-close:hover {
+    background-color: #f0f0f0;
+    transform: translateY(-2px);
+}
+
+@keyframes fadeIn {
+    from {opacity: 0;}
+    to {opacity: 1;}
+}
+
+@keyframes slideIn {
+    from {transform: translateY(-50px); opacity: 0;}
+    to {transform: translateY(0); opacity: 1;}
+}
 </style>
   </head>
   <body>
@@ -410,5 +473,12 @@
         <ul id="namesList"></ul>
       </div>
     </div>
+    <div id="nameModal" class="modal">
+    <div class="modal-content">
+        <h2>שם החטוף/ה שנבחר לתפילה עבורך</h2>
+        <p id="modalResult" class="modal-result"></p>
+        <button id="closeModal" class="modal-close">אתפלל בשמחה</button>
+    </div>
+</div>
   </body>
 </html>
