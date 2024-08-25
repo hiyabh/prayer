@@ -18,17 +18,12 @@
  <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js";
-import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+import { getDatabase, ref, runTransaction, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBcuwDI1n17evwg7YxeI6twTNVWZL9jb1Y",
   authDomain: "prayer-e0df2.firebaseapp.com",
   databaseURL: "https://prayer-e0df2-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "prayer-e0df2",
-  storageBucket: "prayer-e0df2.appspot.com",
-  messagingSenderId: "1093380327772",
-  appId: "1:1093380327772:web:0ce40c6aee3d54ac4c9999",
-  measurementId: "G-4PE5V4C1H5",
 };
 
 // Initialize Firebase
@@ -148,10 +143,22 @@ const names = [
   "פונגסאג טהנה",
   "סוראסאק לאמנאו",
 ];
-
-
 let namesCount = {};
 let totalCount = 0;
+
+// אתחול רשימת השמות בדאטאבייס
+function initializeNames() {
+  const namesRef = ref(database, 'names');
+  runTransaction(namesRef, (currentData) => {
+    if (currentData === null) {
+      return names.reduce((acc, name) => {
+        acc[name] = true;
+        return acc;
+      }, {});
+    }
+    return currentData; // אם כבר קיים, אל תשנה
+  });
+}
 
 // טעינת נתונים מ-Firebase
 function loadData() {
@@ -171,10 +178,22 @@ function loadData() {
   });
 }
 
-// שמירת נתונים ל-Firebase
-function saveData() {
-  set(ref(database, "namesCount"), namesCount);
-  set(ref(database, "totalCount"), totalCount);
+// עדכון הנתונים ב-Firebase באופן אטומי
+function incrementNameCount(name) {
+  const nameRef = ref(database, `namesCount/${name}`);
+  runTransaction(nameRef, (currentCount) => {
+    return (currentCount || 0) + 1;
+  }).then(() => {
+    const totalRef = ref(database, 'totalCount');
+    return runTransaction(totalRef, (currentTotal) => {
+      return (currentTotal || 0) + 1;
+    });
+  }).then(() => {
+    updateNamesList();
+    updateCounter();
+  }).catch((error) => {
+    console.error("Error incrementing count:", error);
+  });
 }
 
 function updateNamesList() {
@@ -202,11 +221,7 @@ function updateCounter() {
 // הוספת אנימציה לתוצאה
 document.getElementById('generateBtn').addEventListener('click', () => {
   const randomName = names[Math.floor(Math.random() * names.length)];
-  namesCount[randomName] = (namesCount[randomName] || 0) + 1;
-  totalCount++;
-  updateNamesList();
-  updateCounter();
-  saveData();
+  incrementNameCount(randomName);
   
   // הצג את המודל עם השם שנבחר
   document.getElementById('modalResult').textContent = randomName;
@@ -292,7 +307,8 @@ window.addEventListener('click', (event) => {
   }
 });
 
-// טעינת הנתונים בעת טעינת הדף
+// טעינת הנתונים ואתחול רשימת השמות בעת טעינת הדף
+initializeNames();
 loadData();
 </script>
     <style>
