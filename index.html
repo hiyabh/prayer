@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
   <head>
-    <meta charset="UTF-8">
+     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>שמות החטופים לתפילה</title>
     
@@ -11,28 +11,40 @@
 <meta property="og:description" content="קבל שם אקראי של חטוף/ה לתפילה וצפה בסטטיסטיקות של השמות הנבחרים">
 <meta property="og:image" content="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjP4BnZGRu3lKKBVRNjzTmgKl431LV3_ZLJplBx-aEw02I_-Gb6JIt9F_3LRdIEFMi2VwIw4d2CfcPTiAeEuaEBz9obxLr5NRTu3BW8YyBZVx9UkFOTJ4ACeI0Vw0naFlV2r2DIrLSi3eUMuOd-YWLEJmX_liJg9pgOQEAxA1EVlAhcpj62M9Zu1tv_HasP/s320/WhatsApp%20Image%202024-08-22%20at%2000.19.32.jpeg">
 
+    
     <!-- אייקון האתר -->
     <link rel="icon" href="https://cdn.jsdelivr.net/npm/@mdi/svg@7.2.96/svg/pray.svg" type="image/svg+xml">
     
     <script src="https://cdn.tailwindcss.com"></script>
- <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js";
-import { getDatabase, ref, runTransaction, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js";
+      import {
+        getDatabase,
+        ref,
+        set,
+        onValue,
+      } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
-const firebaseConfig = {
-  authDomain: "prayer-e0df2.firebaseapp.com",
-  databaseURL: "https://prayer-e0df2-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "prayer-e0df2",
-};
+      const firebaseConfig = {
+        apiKey: "AIzaSyBcuwDI1n17evwg7YxeI6twTNVWZL9jb1Y",
+        authDomain: "prayer-e0df2.firebaseapp.com",
+        databaseURL:
+          "https://prayer-e0df2-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "prayer-e0df2",
+        storageBucket: "prayer-e0df2.appspot.com",
+        messagingSenderId: "1093380327772",
+        appId: "1:1093380327772:web:0ce40c6aee3d54ac4c9999",
+        measurementId: "G-4PE5V4C1H5",
+      };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-const database = getDatabase(app);
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
+      const database = getDatabase(app);
 
-// רשימת שמות לתפילה
-const names = [
+      // רשימת שמות לתפילה
+      const names = [
   "אבינתן בן דיצה תרצה (אור)",
   "אביתר בן גליה (דוד)",
   "אברהם אברה בן אגרנש (מנגיסטו)",
@@ -141,176 +153,155 @@ const names = [
   "פינטה נטפונג",
   "באנאוואט סהטאן",
   "פונגסאג טהנה",
-  "סוראסאק לאמנאו",
+  "סוראסאק לאמנאו"
 ];
-let namesCount = {};
-let totalCount = 0;
+      let namesCount = {};
+      let totalCount = 0;
 
-// אתחול רשימת השמות בדאטאבייס
-function initializeNames() {
-  const namesRef = ref(database, 'names');
-  runTransaction(namesRef, (currentData) => {
-    if (currentData === null) {
-      return names.reduce((acc, name) => {
-        acc[name] = true;
-        return acc;
-      }, {});
-    }
-    return currentData; // אם כבר קיים, אל תשנה
-  });
-}
-
-// טעינת נתונים מ-Firebase
-function loadData() {
-  const namesCountRef = ref(database, "namesCount");
-  onValue(namesCountRef, (snapshot) => {
-    namesCount = snapshot.val() || {};
-    names.forEach((name) => {
-      if (!namesCount[name]) namesCount[name] = 0;
-    });
-    updateNamesList();
-  });
-
-  const totalCountRef = ref(database, "totalCount");
-  onValue(totalCountRef, (snapshot) => {
-    totalCount = snapshot.val() || 0;
-    updateCounter();
-  });
-}
-
-// עדכון הנתונים ב-Firebase באופן אטומי
-function incrementNameCount(name) {
-  const nameRef = ref(database, `namesCount/${name}`);
-  runTransaction(nameRef, (currentCount) => {
-    return (currentCount || 0) + 1;
-  }).then(() => {
-    const totalRef = ref(database, 'totalCount');
-    return runTransaction(totalRef, (currentTotal) => {
-      return (currentTotal || 0) + 1;
-    });
-  }).then(() => {
-    updateNamesList();
-    updateCounter();
-  }).catch((error) => {
-    console.error("Error incrementing count:", error);
-  });
-}
-
-function updateNamesList() {
-  const namesList = document.getElementById("namesList");
-  namesList.innerHTML = "";
-  Object.entries(namesCount)
-    .sort((a, b) => b[1] - a[1])
-    .forEach(([name, count], index) => {
-      const li = document.createElement("li");
-      li.innerHTML = `
-        <div>
-          <span class="name-number">${index + 1}.</span>
-          <span class="name-text">${name}</span>
-        </div>
-        <span class="name-count">${count}</span>
-      `;
-      namesList.appendChild(li);
-    });
-}
-
-function updateCounter() {
-  document.getElementById("counter").textContent = `סה"כ אנשים שקיבלו שם חטוף לתפילה: ${totalCount}`;
-}
-
-// הוספת אנימציה לתוצאה
-document.getElementById('generateBtn').addEventListener('click', () => {
-  const randomName = names[Math.floor(Math.random() * names.length)];
-  incrementNameCount(randomName);
-  
-  // הצג את המודל עם השם שנבחר
-  document.getElementById('modalResult').textContent = randomName;
-  document.getElementById('nameModal').style.display = 'block';
-});
-
-// העתקת תוכן המודאל
-document.addEventListener('DOMContentLoaded', (event) => {
-  const modal = document.getElementById("nameModal");
-  const closeBtn = document.getElementById("closeModal");
-  const copyBtn = document.getElementById("copyModal");
-  const modalResult = document.getElementById("modalResult");
-
-  // Close the modal when clicking the close button
-  closeBtn.onclick = function() {
-    modal.style.display = "none";
-  }
-
-  // Close the modal when clicking outside of it
-  window.onclick = function(event) {
-    if (event.target == modal) {
-      modal.style.display = "none";
-    }
-  }
-
-  // Copy modal content to clipboard, excluding buttons
-  copyBtn.onclick = function() {
-    const hostage = modalResult.textContent;
-    const prayers = Array.from(document.querySelectorAll('.prayer-section'))
-      .map(section => {
-        return section.querySelector('h3').textContent + '\n\n' +
-          Array.from(section.querySelectorAll('.prayer-text'))
-            .map(p => p.textContent.trim())
-            .join('\n\n');
-      })
-      .join('\n\n');
-
-    const contentToCopy = `${hostage}\n\n${prayers}`;
-
-    // Use the Clipboard API if available, otherwise fallback to execCommand
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(contentToCopy)
-        .then(() => alert("התוכן הועתק ללוח"))
-        .catch(err => {
-          console.error('Failed to copy text: ', err);
-          fallbackCopyTextToClipboard(contentToCopy);
+      // טעינת נתונים מ-Firebase
+      function loadData() {
+        const namesCountRef = ref(database, "namesCount");
+        onValue(namesCountRef, (snapshot) => {
+          namesCount = snapshot.val() || {};
+          names.forEach((name) => {
+            if (!namesCount[name]) namesCount[name] = 0;
+          });
+          updateNamesList();
         });
-    } else {
-      fallbackCopyTextToClipboard(contentToCopy);
+
+        const totalCountRef = ref(database, "totalCount");
+        onValue(totalCountRef, (snapshot) => {
+          totalCount = snapshot.val() || 0;
+          updateCounter();
+        });
+      }
+
+      // שמירת נתונים ל-Firebase
+      function saveData() {
+        set(ref(database, "namesCount"), namesCount);
+        set(ref(database, "totalCount"), totalCount);
+      }
+
+      function updateNamesList() {
+        const namesList = document.getElementById("namesList");
+        namesList.innerHTML = "";
+        Object.entries(namesCount)
+          .sort((a, b) => b[1] - a[1])
+          .forEach(([name, count], index) => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+                    <div>
+                        <span class="name-number">${index + 1}.</span>
+                        <span class="name-text">${name}</span>
+                    </div>
+                    <span class="name-count">${count}</span>
+                `;
+            namesList.appendChild(li);
+          });
+      }
+
+      function updateCounter() {
+        document.getElementById(
+          "counter"
+        ).textContent = `סה"כ אנשים שקיבלו שם חטוף לתפילה: ${totalCount}`;
+      }
+
+      // הוספת אנימציה לתוצאה
+document.getElementById('generateBtn').addEventListener('click', () => {
+        const randomName = names[Math.floor(Math.random() * names.length)];
+        namesCount[randomName] = (namesCount[randomName] || 0) + 1;
+        totalCount++;
+        updateNamesList();
+        updateCounter();
+        saveData();
+        
+        // הצג את המודל עם השם שנבחר
+        document.getElementById('modalResult').textContent = randomName;
+        document.getElementById('nameModal').style.display = 'block';
+    });
+
+    //העתקת תוכן המודאל
+document.addEventListener('DOMContentLoaded', (event) => {
+    const modal = document.getElementById("nameModal");
+    const closeBtn = document.getElementById("closeModal");
+    const copyBtn = document.getElementById("copyModal");
+    const modalResult = document.getElementById("modalResult");
+
+    // Close the modal when clicking the close button
+    closeBtn.onclick = function() {
+        modal.style.display = "none";
     }
-  }
 
-  // Fallback function for older browsers
-  function fallbackCopyTextToClipboard(text) {
-    const textArea = document.createElement("textarea");
-    textArea.value = text;
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-
-    try {
-      const successful = document.execCommand('copy');
-      const msg = successful ? "התוכן הועתק ללוח" : "ההעתקה נכשלה";
-      alert(msg);
-    } catch (err) {
-      console.error('Fallback: Oops, unable to copy', err);
+    // Close the modal when clicking outside of it
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
     }
 
-    document.body.removeChild(textArea);
-  }
+    // Copy modal content to clipboard, excluding buttons
+    copyBtn.onclick = function() {
+        const hostage = modalResult.textContent;
+        const prayers = Array.from(document.querySelectorAll('.prayer-section'))
+            .map(section => {
+                return section.querySelector('h3').textContent + '\n\n' +
+                    Array.from(section.querySelectorAll('.prayer-text'))
+                        .map(p => p.textContent.trim())
+                        .join('\n\n');
+            })
+            .join('\n\n');
+
+        const contentToCopy = `${hostage}\n\n${prayers}`;
+
+        // Use the Clipboard API if available, otherwise fallback to execCommand
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(contentToCopy)
+                .then(() => alert("התוכן הועתק ללוח"))
+                .catch(err => {
+                    console.error('Failed to copy text: ', err);
+                    fallbackCopyTextToClipboard(contentToCopy);
+                });
+        } else {
+            fallbackCopyTextToClipboard(contentToCopy);
+        }
+    }
+
+    // Fallback function for older browsers
+    function fallbackCopyTextToClipboard(text) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+            const successful = document.execCommand('copy');
+            const msg = successful ? "התוכן הועתק ללוח" : "ההעתקה נכשלה";
+            alert(msg);
+        } catch (err) {
+            console.error('Fallback: Oops, unable to copy', err);
+        }
+
+        document.body.removeChild(textArea);
+    }
 });
 
-// סגירת המודל
-document.getElementById('closeModal').addEventListener('click', () => {
-  document.getElementById('nameModal').style.display = 'none';
-});
+    // סגירת המודל
+    document.getElementById('closeModal').addEventListener('click', () => {
+        document.getElementById('nameModal').style.display = 'none';
+    });
 
-// סגירת המודל כשלוחצים מחוץ לתוכן שלו
-window.addEventListener('click', (event) => {
-  const modal = document.getElementById('nameModal');
-  if (event.target === modal) {
-    modal.style.display = 'none';
-  }
-});
+    // סגירת המודל כשלוחצים מחוץ לתוכן שלו
+    window.addEventListener('click', (event) => {
+        const modal = document.getElementById('nameModal');
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
 
-// טעינת הנתונים ואתחול רשימת השמות בעת טעינת הדף
-initializeNames();
-loadData();
-</script>
+    // טעינת הנתונים בעת טעינת הדף
+    loadData();
+    </script>
     <style>
  @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700&display=swap');
 
@@ -622,7 +613,7 @@ h1::after, .fancy-title::after {
         <div class="prayer-section">
             <h3><b>תפילה לחטופים החיים</b></h3>
             <p class="prayer-text">
-                מִי שֶׁבֵּרַךְ אֲבוֹתֵינוּ הַקְּדוֹשִׁים אַבְרָהָם יִצְחָק יַעֲקֹב מֹשֶׁה אַהֲרֹן יוֹסֵף וְדָּוִד, הוּא יְבָרֵךְ וְיִשְׁמֹר וְיִנְצֹר אֶת כָּל הַשְּׁבוּיִים וְהַנֶּעֱדָרִים בְּתוֹךְ שְׁאָר אַחֵינוּ בֵּית יִשְֹרָאֵל הַנְּתוּנִים בַּצָּרָה וּבַשִּׁבְיָה.
+               מִי שֶׁבֵּרַךְ אֲבוֹתֵינוּ הַקְּדוֹשִׁים אַבְרָהָם יִצְחָק יַעֲקֹב מֹשֶׁה אַהֲרֹן יוֹסֵף וְדָּוִד, הוּא יְבָרֵךְ וְיִשְׁמֹר וְיִנְצֹר אֶת כָּל הַשְּׁבוּיִים וְהַנֶּעֱדָרִים בְּתוֹךְ שְׁאָר אַחֵינוּ בֵּית יִשְֹרָאֵל הַנְּתוּנִים בַּצָּרָה וּבַשִּׁבְיָה.
             </p>
             <p class="prayer-text">
                 הַקָּדוֹשׁ בָּרוּךְ הוּא יִמָּלֵא רַחֲמִים עֲלֵיהֶם, וְיוֹצִיאֵם מֵחֹשֶׁךְ וְצַלְמָוֶת, וּמוֹסְרוֹתֵיהֶם יְנַתֵּק, וּמִמְּצוּקוֹתֵיהֶם יוֹשִׁיעֵם. יְשִׁיבֵם מְהֵרָה לְחֵיק מִשְׁפְּחוֹתֵיהֶם בְּרִנָּה וּבְשָׁלוֹם.
