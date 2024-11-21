@@ -2,11 +2,25 @@
 <html lang="he" dir="rtl">
   <head>
     <meta charset="UTF-8">
+    
+    <!-- Security Headers -->
+    <meta http-equiv="Content-Security-Policy" 
+          content="default-src 'self' https://*.firebaseio.com https://*.googleapis.com; 
+                   script-src 'self' https://www.gstatic.com https://cdn.tailwindcss.com https://*.firebaseio.com https://*.googleapis.com 'unsafe-inline'; 
+                   style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; 
+                   font-src 'self' https://fonts.gstatic.com;
+                   connect-src 'self' https://*.firebaseio.com https://*.googleapis.com;
+                   img-src 'self' https://blogger.googleusercontent.com https://cdn.jsdelivr.net;
+                   worker-src 'self' https://*.firebaseio.com https://*.googleapis.com;">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>שמות החטופים לתפילה</title>
     
     <!-- תיאור האתר -->
-    <meta name="description" content="שמות החטופים לתפילה - קבל שם אקראי של חטוף/ה לתפילה וצפה בסטטיסטיקות של השמות הנבחרים">
+    <meta name="description" content="שמות החטופים לתפילה - קבל שם אקראי של חטוף/ה לתפילה וצפה סטטיסטיקות של השמות הנבחרים">
     <meta property="og:title" content="שמות החטופים לתפילה">
 <meta property="og:description" content="קבל שם אקראי של חטוף/ה לתפילה וצפה בסטטיסטיקות של השמות הנבחרים">
 <meta property="og:image" content="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjP4BnZGRu3lKKBVRNjzTmgKl431LV3_ZLJplBx-aEw02I_-Gb6JIt9F_3LRdIEFMi2VwIw4d2CfcPTiAeEuaEBz9obxLr5NRTu3BW8YyBZVx9UkFOTJ4ACeI0Vw0naFlV2r2DIrLSi3eUMuOd-YWLEJmX_liJg9pgOQEAxA1EVlAhcpj62M9Zu1tv_HasP/s320/WhatsApp%20Image%202024-08-22%20at%2000.19.32.jpeg">
@@ -99,7 +113,7 @@ const names = [
   "מקסים בן טלה נטשה (הרקין)",
   "מתן שחר בן ענת (אנגרסט)",
   "מתן בן ירדנה עינב (צנגאוקר)",
-  "מני בן סוניה גודארד הי׳ד",
+  "מני בן סונה גודארד הי׳ד",
   "נמרוד בן ויקי (כהן)",
   "נעמה בת איילת (לוי)",
   'סהר בן תמר (ברוך) הי"ד',
@@ -120,7 +134,7 @@ const names = [
   "קרינה בת אירה (ארייב)",
   "רומי בת מירב (גונן)",
   "רום בן תמר (ברסלבסקי)",
-  'רון בן בתיה (ארד) הי"ד',
+  'רון ן בתיה (ארד) הי"ד',
   "רונן בן רוזמרי (אנגל) הי״ד",
   'רן בן טלי (גואילי) הי"ד',
   "שגב בן גלית (כלפון)",
@@ -150,20 +164,35 @@ let lastClickTime = 0;
 const CLICK_DELAY = 2000; // 2 שניות בין לחיצות
 
 // טעינת נתונים מ-Firebase
-function loadData() {
+async function loadData() {
+  console.log("Starting loadData...");
+  
+  // אתחול ערכים התחלתיים
+  names.forEach((name) => {
+    namesCount[name] = 0;
+  });
+  
+  // עדכון ראשוני של הרשימה
+  updateNamesList();
+  
   const namesCountRef = ref(database, "namesCount");
   onValue(namesCountRef, (snapshot) => {
-    namesCount = snapshot.val() || {};
-    names.forEach((name) => {
-      if (!namesCount[name]) namesCount[name] = 0;
-    });
-    updateNamesList();
+    console.log("Got data from Firebase:", snapshot.val());
+    const data = snapshot.val();
+    if (data) {
+      namesCount = data;
+      // וידוא שכל השמות קיימים
+      names.forEach((name) => {
+        if (!namesCount[name]) namesCount[name] = 0;
+      });
+      console.log("Updated namesCount:", namesCount);
+      updateNamesList();
+    }
   });
 
   const totalCountRef = ref(database, "totalCount");
   onValue(totalCountRef, (snapshot) => {
     totalCount = snapshot.val() || 0;
-    // updateCounter();
   });
 }
 
@@ -197,25 +226,40 @@ async function saveData() {
 }
 
 function updateNamesList() {
+  console.log("Running updateNamesList...");
   const namesList = document.getElementById("namesList");
-  namesList.innerHTML = "";
+  if (!namesList) {
+    console.error("namesList element not found!");
+    return;
+  }
+  
+  // מחיקת התוכן הקיים
+  while (namesList.firstChild) {
+    namesList.removeChild(namesList.firstChild);
+  }
+  
+  // הוספת השמות החדשים
   Object.entries(namesCount)
     .sort((a, b) => b[1] - a[1])
     .forEach(([name, count], index) => {
       const li = document.createElement("li");
-      li.innerHTML = `
-        <div>
-          <span class="name-number">${index + 1}.</span>
-          <span class="name-text">${name}</span>
-        </div>
-      `;
+      const div = document.createElement("div");
+      const numberSpan = document.createElement("span");
+      const textSpan = document.createElement("span");
+      
+      numberSpan.className = "name-number";
+      numberSpan.textContent = `${index + 1}.`;
+      
+      textSpan.className = "name-text";
+      textSpan.textContent = name;
+      
+      div.appendChild(numberSpan);
+      div.appendChild(textSpan);
+      li.appendChild(div);
       namesList.appendChild(li);
     });
+  console.log("Finished updating names list");
 }
-
-// function updateCounter() {
-//   document.getElementById("counter").textContent = `סה"כ אנשים שקיבלו שם חטוף לתפילה: ${totalCount}`;
-// }
 
 // הוספת אנימציה לתוצאה
 document.getElementById('generateBtn').addEventListener('click', () => {
@@ -317,7 +361,10 @@ window.addEventListener('click', (event) => {
 });
 
 // טעינת הנתונים בעת טעינת הדף
-loadData();
+document.addEventListener('DOMContentLoaded', () => {
+  console.log("DOM loaded, calling loadData...");
+  loadData();
+});
 </script>
     <style>
  @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700&display=swap');
@@ -639,7 +686,7 @@ h1::after, .fancy-title::after {
                 בַּעַל הָרַחֲמִים יְרַחֵם עַל מִשְׁפְּחוֹתֵיהֶם הַמְצַפּוֹת, יְחַזֵּק אֶת רוּחָם וְיִתֵּן לָהֶם כֹּחַ וְתִקְוָה עַד שׁוּב יַקִּירֵיהֶם.
             </p>
             <p class="prayer-text">
-                וִיקֻיַּם בָּהֶם מִקְרָא שֶׁכָּתוּב: "וּפְדוּיֵי יְיָ יְשׁוּבוּן וּבָאוּ צִיּוֹן בְּרִנָּה וְשִׂמְחַת עוֹלָם עַל רֹאשָׁם, שָׂשׂוֹן וְשִׂמְחָה יַשִּׂיגוּ וְנָסוּ יָגוֹן וַאֲנָחָה".
+                וִיקֻיַּם בָּהֶם מִקְרָא שֶׁכָּתוּב: "וּפְדוּיֵי יְיָ יְשׁוּבוּן וּבָאוּ צִיּוֹן בְּרִנָּה וְשִׂמְחַת עוֹלָם עַל רֹאשָׁם, שָׂשׂוֹן וְשִׂמְחָה יַשִּיגוּ וְנָסוּ יָגוֹן וַאֲנָחָה".
             </p>
         </div>
         <div class="prayer-section">
@@ -648,7 +695,7 @@ h1::after, .fancy-title::after {
                 הַמְרַחֵם עַל כָּל בְּרִיּוֹתָיו הוּא יָחֹס וְיַחְמֹל וִירַחֵם עַל נֶפֶשׁ, רוּחַ וּנְשָׁמָה שֶׁל הַנִּרְצָחִים וְהַנּוֹפְלִים בַּקְּרָב, בֵּין אֵלּוּ שֶׁגּוּפָתָם מֻחְזֶקֶת בְּיַד אוֹיֵב, וּבֵין אֵלּוּ שֶׁמְּקוֹם קְבוּרָתָם לֹא נוֹדַע.
             </p>
             <p class="prayer-text">
-                מֶלֶךְ מַלְכֵי הַמְּלָכִים בְּרַחֲמָיו יְרַחֵם עֲלֵיהֶם, יִתֵּן מְנוּחָה לְנִשְׁמָתָם וַיֵּאָסְפוּ לְקֶבֶר יִשְׂרָאֵל בִּמְהֵרָה. בַּעַל הָרַחֲמִים יְרַחֵם עַל מִשְׁפַּחְתָּם, יְנַחֲמֵם בְּאֶבְלָם וְיַעֲלֶה מָזוֹר לִכְאֵבָם.
+                מֶלֶךְ מַלְכֵי הַמְּלָכִים בְּרַחֲמָיו יְרַחֵם עֲלֵיהֶם, יִתֵּן מְנוּחָה לְנִשְׁמָתָם וַיֵּאָסְפוּ לְקֶבֶר יִשְׂרָאֵל בִּמְהֵרָה. בַּל הָרַחֲמִים יְרַחֵם עַל מִשְׁפַּחְתָּם, יְנַחֲמֵם בְּאֶבְלָם וְיַעֲלֶה מָזוֹר לִכְאֵבָם.
             </p>
             <p class="prayer-text">
                 דּוֹרֵשׁ דָּמִים יִדְרֹשׁ דָּמָם מִיַּד רוֹצְחֵיהֶם, שׁוֹבֵיהֶם וּמְעַנֵּיהֶם. ה' הוּא נַחֲלָתָם, בְּגַן עֵדֶן תְּהֵא מְנוּחָתָם, וְיָנוּחוּ בְּשָׁלוֹם עַל מִשְׁכְּבוֹתָם.
