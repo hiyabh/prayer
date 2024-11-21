@@ -167,10 +167,33 @@ function loadData() {
   });
 }
 
-// שמירת נתונים ל-Firebase 
-function saveData() {
-  set(ref(database, "namesCount"), namesCount);
-  set(ref(database, "totalCount"), totalCount);
+// עדכון פונקציית saveData
+async function saveData() {
+  // וולידציה של הנתונים לפני שמירה
+  if (typeof totalCount !== 'number' || totalCount < 0) {
+    console.error('Invalid totalCount value');
+    return;
+  }
+
+  // בדיקת תקינות של namesCount
+  for (const [name, count] of Object.entries(namesCount)) {
+    if (typeof count !== 'number' || count < 0) {
+      console.error(`Invalid count for name: ${name}`);
+      return;
+    }
+    if (!names.includes(name)) {
+      console.error(`Invalid name: ${name}`);
+      return;
+    }
+  }
+
+  try {
+    await set(ref(database, "namesCount"), namesCount);
+    await set(ref(database, "totalCount"), totalCount);
+  } catch (error) {
+    console.error("Error saving data:", error);
+    alert("אירעה שגיאה בשמירת הנתונים");
+  }
 }
 
 function updateNamesList() {
