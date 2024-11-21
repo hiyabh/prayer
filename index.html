@@ -145,6 +145,10 @@ const names = [
 let namesCount = {};
 let totalCount = 0;
 
+// הוספת משתנה גלובלי לניהול הגבלת קצב
+let lastClickTime = 0;
+const CLICK_DELAY = 2000; // 2 שניות בין לחיצות
+
 // טעינת נתונים מ-Firebase
 function loadData() {
   const namesCountRef = ref(database, "namesCount");
@@ -192,14 +196,20 @@ function updateNamesList() {
 
 // הוספת אנימציה לתוצאה
 document.getElementById('generateBtn').addEventListener('click', () => {
+  // בדיקת הגבלת קצב
+  const currentTime = Date.now();
+  if (currentTime - lastClickTime < CLICK_DELAY) {
+    alert('נא להמתין מספר שניות לפני בקשה חדשה');
+    return;
+  }
+  lastClickTime = currentTime;
+
   const randomName = names[Math.floor(Math.random() * names.length)];
   namesCount[randomName] = (namesCount[randomName] || 0) + 1;
   totalCount++;
   updateNamesList();
-  // updateCounter();
   saveData();
   
-  // הצג את המודל עם השם שנבחר
   document.getElementById('modalResult').textContent = randomName;
   document.getElementById('nameModal').style.display = 'block';
 });
